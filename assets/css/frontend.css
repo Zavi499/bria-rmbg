@@ -1,0 +1,46 @@
+/**
+ * Frontend Styles for WP Background Remover
+ * Used for Gutenberg blocks on the frontend
+ */
+
+/* Block Container */
+.wp-block-wp-bg-remover-background-remover {
+  margin: 20px 0;
+}
+
+/* Image Display */
+.wp-bg-remover-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 5px;
+}
+
+/* Comparison Mode */
+.wp-bg-remover-comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.wp-bg-remover-comparison-item {
+  position: relative;
+}
+
+.wp-bg-remover-comparison-label {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .wp-bg-remover-comparison {
+    grid-template-columns: 1fr;
+  }
+}
