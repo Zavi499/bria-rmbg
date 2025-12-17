@@ -31,7 +31,7 @@
     "html": false,
     "align": true
   },
-  "editorScript": "file:./index.js",
+  "editorScript": "file:./index.jsx",
   "editorStyle": "file:./style.css",
   "style": "file:./style.css"
 }
