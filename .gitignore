@@ -1,8 +1,5 @@
-# Build output
-/build/
-/dist/
-
 # Node modules
+/node_modules/
 
 # WordPress
 wp-config.php
