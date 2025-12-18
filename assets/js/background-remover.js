@@ -142,9 +142,14 @@ class BackgroundRemover {
 
       // Load image as RawImage for the model
       let rawImage;
+      let blobUrl = null;
+
       if (imageInput instanceof File || imageInput instanceof Blob) {
-        console.log('Loading image from File/Blob');
-        rawImage = await RawImage.read(imageInput);
+        console.log('Converting File/Blob to blob URL');
+        // Convert File/Blob to blob URL first, then use fromURL
+        blobUrl = URL.createObjectURL(imageInput);
+        console.log('Blob URL created:', blobUrl);
+        rawImage = await RawImage.fromURL(blobUrl);
       } else if (typeof imageInput === 'string') {
         console.log('Loading image from URL');
         rawImage = await RawImage.fromURL(imageInput);
@@ -157,6 +162,7 @@ class BackgroundRemover {
       // Check image dimensions
       const maxDimension = options.maxDimension || 4000;
       if (rawImage.width > maxDimension || rawImage.height > maxDimension) {
+        if (blobUrl) URL.revokeObjectURL(blobUrl);
         throw new Error(`Image dimensions exceed maximum of ${maxDimension}px`);
       }
 
@@ -172,6 +178,9 @@ class BackgroundRemover {
       // Convert RawImage to canvas for processing
       const canvas = rawImage.toCanvas();
       console.log('Canvas created:', canvas.width, 'x', canvas.height);
+
+      // Clean up blob URL
+      if (blobUrl) URL.revokeObjectURL(blobUrl);
 
       // Process the segmentation result
       const processedBlob = await this._applyMaskToCanvas(canvas, result, {
