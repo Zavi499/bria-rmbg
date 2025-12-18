@@ -3,7 +3,7 @@
  * Uses BRIA-RMBG-1.4 model via Transformers.js for client-side background removal
  */
 
-import { pipeline, env } from '@huggingface/transformers';
+import { pipeline, env, RawImage } from '@huggingface/transformers';
 
 /**
  * Background Remover class
@@ -140,21 +140,33 @@ class BackgroundRemover {
     try {
       this._reportProgress('Processing image...', 0);
 
-      // Convert input to image element
-      const img = await this._loadImage(imageInput);
+      // Load image as RawImage for the model
+      let rawImage;
+      if (imageInput instanceof File || imageInput instanceof Blob) {
+        // Use RawImage.read() for File/Blob objects
+        rawImage = await RawImage.read(imageInput);
+      } else if (typeof imageInput === 'string') {
+        // Use RawImage.fromURL() for URLs
+        rawImage = await RawImage.fromURL(imageInput);
+      } else {
+        throw new Error('Invalid image input type');
+      }
 
       // Check image dimensions
       const maxDimension = options.maxDimension || 4000;
-      if (img.width > maxDimension || img.height > maxDimension) {
+      if (rawImage.width > maxDimension || rawImage.height > maxDimension) {
         throw new Error(`Image dimensions exceed maximum of ${maxDimension}px`);
       }
 
       this._reportProgress('Running AI model...', 30);
 
-      // Run the model - pass the image src (URL) instead of the element
-      const result = await this.model(img.src);
+      // Run the model with RawImage
+      const result = await this.model(rawImage);
 
       this._reportProgress('Applying mask...', 70);
+
+      // Convert RawImage to HTMLImageElement for canvas processing
+      const img = await this._rawImageToImg(rawImage);
 
       // Process the segmentation result
       const processedBlob = await this._applyMask(img, result, {
@@ -182,6 +194,38 @@ class BackgroundRemover {
     return this.removeBackground(imageInput, {
       ...options,
       backgroundColor
+    });
+  }
+
+  /**
+   * Convert RawImage to HTMLImageElement
+   * @param {RawImage} rawImage - RawImage object
+   * @returns {Promise<HTMLImageElement>}
+   * @private
+   */
+  async _rawImageToImg(rawImage) {
+    return new Promise((resolve, reject) => {
+      // Convert RawImage to canvas
+      const canvas = rawImage.toCanvas();
+
+      // Convert canvas to blob then to object URL
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          reject(new Error('Failed to convert RawImage to blob'));
+          return;
+        }
+
+        const img = new Image();
+        img.onload = () => {
+          URL.revokeObjectURL(img.src);
+          resolve(img);
+        };
+        img.onerror = () => {
+          URL.revokeObjectURL(img.src);
+          reject(new Error('Failed to load image from blob'));
+        };
+        img.src = URL.createObjectURL(blob);
+      }, 'image/png');
     });
   }
 
