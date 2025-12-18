@@ -90,6 +90,9 @@ class WP_Background_Remover {
 		// Enqueue scripts
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_assets' ) );
 
+		// Add module type to script tags
+		add_filter( 'script_loader_tag', array( $this, 'add_module_type_to_scripts' ), 10, 3 );
+
 		// Activation hook
 		register_activation_hook( __FILE__, array( $this, 'activate' ) );
 	}
@@ -113,6 +116,22 @@ class WP_Background_Remover {
 	}
 
 	/**
+	 * Add module type to our script tags
+	 *
+	 * @param string $tag    The script tag.
+	 * @param string $handle The script handle.
+	 * @param string $src    The script source URL.
+	 * @return string Modified script tag.
+	 */
+	public function add_module_type_to_scripts( $tag, $handle, $src ) {
+		// Add type="module" to our plugin scripts
+		if ( strpos( $handle, 'wp-bg-remover-' ) === 0 ) {
+			$tag = str_replace( '<script ', '<script type="module" ', $tag );
+		}
+		return $tag;
+	}
+
+	/**
 	 * Enqueue frontend assets
 	 */
 	public function enqueue_frontend_assets() {
@@ -130,6 +149,7 @@ class WP_Background_Remover {
 			WP_BG_REMOVER_VERSION,
 			true
 		);
+		wp_script_add_data( 'wp-bg-remover-core', 'type', 'module' );
 
 		// Enqueue app script
 		wp_enqueue_script(
@@ -139,6 +159,7 @@ class WP_Background_Remover {
 			WP_BG_REMOVER_VERSION,
 			true
 		);
+		wp_script_add_data( 'wp-bg-remover-app', 'type', 'module' );
 
 		// Enqueue styles
 		wp_enqueue_style(
