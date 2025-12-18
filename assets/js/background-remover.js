@@ -151,8 +151,8 @@ class BackgroundRemover {
 
       this._reportProgress('Running AI model...', 30);
 
-      // Run the model
-      const result = await this.model(img);
+      // Run the model - pass the image src (URL) instead of the element
+      const result = await this.model(img.src);
 
       this._reportProgress('Applying mask...', 70);
 
