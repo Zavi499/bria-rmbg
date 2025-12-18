@@ -143,14 +143,16 @@ class BackgroundRemover {
       // Load image as RawImage for the model
       let rawImage;
       if (imageInput instanceof File || imageInput instanceof Blob) {
-        // Use RawImage.read() for File/Blob objects
+        console.log('Loading image from File/Blob');
         rawImage = await RawImage.read(imageInput);
       } else if (typeof imageInput === 'string') {
-        // Use RawImage.fromURL() for URLs
+        console.log('Loading image from URL');
         rawImage = await RawImage.fromURL(imageInput);
       } else {
         throw new Error('Invalid image input type');
       }
+
+      console.log('RawImage loaded:', rawImage.width, 'x', rawImage.height);
 
       // Check image dimensions
       const maxDimension = options.maxDimension || 4000;
@@ -161,15 +163,18 @@ class BackgroundRemover {
       this._reportProgress('Running AI model...', 30);
 
       // Run the model with RawImage
+      console.log('Running model...');
       const result = await this.model(rawImage);
+      console.log('Model result:', result);
 
       this._reportProgress('Applying mask...', 70);
 
-      // Convert RawImage to HTMLImageElement for canvas processing
-      const img = await this._rawImageToImg(rawImage);
+      // Convert RawImage to canvas for processing
+      const canvas = rawImage.toCanvas();
+      console.log('Canvas created:', canvas.width, 'x', canvas.height);
 
       // Process the segmentation result
-      const processedBlob = await this._applyMask(img, result, {
+      const processedBlob = await this._applyMaskToCanvas(canvas, result, {
         backgroundColor: 'transparent',
         ...options
       });
@@ -179,7 +184,13 @@ class BackgroundRemover {
       return processedBlob;
     } catch (error) {
       console.error('Background removal failed:', error);
-      throw error;
+      console.error('Error details:', {
+        message: error?.message,
+        stack: error?.stack,
+        name: error?.name,
+        toString: error?.toString()
+      });
+      throw new Error(error?.message || 'Unknown error during background removal');
     }
   }
 
@@ -249,6 +260,83 @@ class BackgroundRemover {
       } else {
         reject(new Error('Invalid image input type'));
       }
+    });
+  }
+
+  /**
+   * Apply segmentation mask to canvas
+   * @param {HTMLCanvasElement} sourceCanvas - Original image canvas
+   * @param {Array} result - Segmentation result from model
+   * @param {Object} options - Options including backgroundColor
+   * @returns {Promise<Blob>}
+   * @private
+   */
+  async _applyMaskToCanvas(sourceCanvas, result, options = {}) {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    canvas.width = sourceCanvas.width;
+    canvas.height = sourceCanvas.height;
+
+    // Draw background color if specified
+    if (options.backgroundColor && options.backgroundColor !== 'transparent') {
+      ctx.fillStyle = options.backgroundColor;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    // Draw original image from source canvas
+    ctx.drawImage(sourceCanvas, 0, 0);
+
+    // Get image data
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const pixels = imageData.data;
+
+    // Get the mask from the result
+    console.log('Segmentation result structure:', result);
+    const mask = result[0]?.mask;
+
+    if (!mask) {
+      console.error('No mask found. Result structure:', result);
+      throw new Error('No mask found in segmentation result');
+    }
+
+    console.log('Mask object:', mask);
+
+    // Apply mask to alpha channel
+    // The mask is a RawImage where foreground is white (255) and background is black (0)
+    const maskCanvas = mask.toCanvas ? mask.toCanvas() : (() => {
+      throw new Error('Mask does not have toCanvas method');
+    })();
+
+    const maskCtx = maskCanvas.getContext('2d');
+    const maskData = maskCtx.getImageData(0, 0, maskCanvas.width, maskCanvas.height);
+    const maskPixels = maskData.data;
+
+    console.log('Mask canvas size:', maskCanvas.width, 'x', maskCanvas.height);
+    console.log('Image canvas size:', canvas.width, 'x', canvas.height);
+
+    // Apply mask to alpha channel
+    for (let i = 0; i < pixels.length; i += 4) {
+      // Use the red channel of the mask as alpha
+      // Foreground (255) = opaque, Background (0) = transparent
+      pixels[i + 3] = maskPixels[i];
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+
+    // Convert to blob
+    return new Promise((resolve, reject) => {
+      canvas.toBlob(
+        (blob) => {
+          if (blob) {
+            resolve(blob);
+          } else {
+            reject(new Error('Failed to create blob'));
+          }
+        },
+        'image/png',
+        options.quality || 0.95
+      );
     });
   }
 
