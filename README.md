@@ -1,231 +1,113 @@
 # WP Background Remover
 
-AI-powered background removal for WordPress using the BRIA-RMBG-1.4 model. All processing happens client-side in the user's browser using WebGPU or WASM - no server required!
+AI-powered background removal for your WordPress visitors! Add a simple shortcode `[bg_remover]` to any page and let your visitors remove backgrounds from their images using AI - all processing happens locally in their browser!
 
 ## Features
 
-### FREE (No Account Required)
-✅ Single image background removal
-✅ Media library integration
-✅ Gutenberg block for content
-✅ WebGPU/WASM processing (fast!)
-✅ Custom background colors
-✅ Download processed images
-✅ Save to media library
-✅ Before/After comparison
-
-### PREMIUM (Account Required)
-🔒 Bulk processing (up to 50 images at once)
-🔒 Queue management with pause/resume
-🔒 Export results as ZIP
-🔒 Advanced settings
-🔒 API access for developers
-🔒 Priority support
+✅ **Bulk Processing** - Process up to 50 images at once
+✅ **Client-Side AI** - Uses BRIA-RMBG-1.4 model (runs in browser)
+✅ **WebGPU/WASM** - Fast GPU processing with automatic fallback
+✅ **Drag & Drop** - Intuitive file upload interface
+✅ **Queue Management** - Pause/resume batch operations
+✅ **Privacy First** - No uploads to server, all processing local
+✅ **Download All** - Get all processed images at once
+✅ **Mobile Friendly** - Responsive design for all devices
+✅ **No Login Required** - Open for all visitors
+✅ **100% Free** - No premium tiers or account walls
 
 ## Requirements
 
-- **WordPress:** 6.0 or higher
-- **PHP:** 7.4 or higher
-- **Browser:** Modern browser with WebGPU or WASM support
-  - Chrome 113+ (WebGPU)
-  - Edge 113+ (WebGPU)
-  - Safari, Firefox (WASM fallback)
+- **WordPress:** 6.0+
+- **PHP:** 7.4+
+- **Modern Browser:**
+  - Chrome 113+ / Edge 113+ (WebGPU - fastest ⚡)
+  - Safari / Firefox (WASM - compatible ✅)
 
 ## Installation
 
-1. **Clone or download** this repository to your WordPress plugins directory:
-   ```bash
-   cd wp-content/plugins/
-   git clone https://github.com/yourusername/wp-background-remover.git
-   ```
+### 1. Upload Plugin
+```bash
+cd wp-content/plugins/
+git clone https://github.com/yourusername/wp-background-remover.git
+cd wp-background-remover
+```
 
-2. **Install dependencies:**
-   ```bash
-   cd wp-background-remover
-   npm install
-   ```
+### 2. Install Dependencies
+```bash
+npm install
+```
 
-3. **Build assets:**
-   ```bash
-   npm run build
-   ```
+### 3. Build Assets
+```bash
+npm run build
+```
 
-4. **Activate the plugin** in WordPress admin (Plugins → Installed Plugins → Activate)
+### 4. Activate
+Go to **WordPress Admin → Plugins** and activate **WP Background Remover**
 
 ## Usage
 
-### Single Image Processing
+### Add to Any Page
 
-1. Go to **BG Remover** in the WordPress admin menu
-2. Click **"Single Image"** tab
-3. Upload or drag & drop an image
-4. Wait for processing (model loads on first use)
-5. Choose background color or keep transparent
-6. Download or save to media library
-
-### Media Library Integration
-
-1. Go to **Media Library**
-2. Hover over any image
-3. Click **"Remove Background"**
-4. Process the image in the modal
-5. Choose to save as new or replace original
-
-### Gutenberg Block
-
-1. In the block editor, add a new block
-2. Search for **"Background Remover"**
-3. Upload an image
-4. The background is automatically removed
-5. Toggle comparison mode to show before/after
-6. Customize background color in the sidebar
-
-### Bulk Processing (Premium Only)
-
-1. Create an account and verify via API
-2. Go to **BG Remover** → **Bulk Process** tab
-3. Upload multiple images (up to 50)
-4. Click **"Start Processing"**
-5. Pause/resume as needed
-6. Download all or save to media library
-
-## Configuration
-
-### Settings Page
-
-Go to **BG Remover → Settings** to configure:
-
-**General Settings:**
-- Model Precision (q4, q8, fp16)
-- Device Preference (Auto, WebGPU, WASM)
-- Default Background Color
-- Max Image Dimensions
-- Output Quality
-- Enable/Disable Features
-
-**Premium Settings** (Premium users only):
-- Bulk Processing Limit
-- Auto-process on upload
-- API access
-- Custom watermark
-
-**API Configuration:**
-- Set your backend API endpoint for account verification
-
-## Account & Premium Access
-
-### For Users
-
-1. Go to **BG Remover → Get Premium**
-2. Enter your email and API token
-3. Click **"Verify Account"**
-4. Access premium features immediately
-
-### For Developers
-
-The plugin verifies premium accounts via your backend API. Set up your API endpoint in **Settings → API Configuration**.
-
-**API Endpoint:** `/verify` (POST)
-
-**Request:**
-```json
-{
-  "email": "user@example.com"
-}
-```
-
-**Headers:**
-```
-Authorization: Bearer {api_token}
-Content-Type: application/json
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "is_premium": true,
-  "status": "active",
-  "user_data": {}
-}
-```
-
-The plugin caches verification for 1 hour. Users must have a valid API token from your service.
-
-## Technical Details
-
-### Client-Side Processing
-
-All image processing happens in the browser using:
-- **Transformers.js** - Running ML models in JavaScript
-- **BRIA-RMBG-1.4** - State-of-the-art background removal model
-- **WebGPU** - Fast GPU acceleration (when available)
-- **WASM** - Universal fallback for all browsers
-- **IndexedDB** - Model caching for faster subsequent loads
-
-### Architecture
+Simply add the shortcode to any page or post:
 
 ```
-wp-background-remover/
-├── wp-background-remover.php     # Main plugin file
-├── includes/                      # PHP classes
-│   ├── class-account.php         # Account management
-│   ├── class-admin.php           # Admin interface
-│   ├── class-media-integration.php
-│   ├── class-rest-api.php        # REST endpoints
-│   └── class-settings.php        # Settings management
-├── assets/
-│   ├── js/                       # JavaScript files
-│   │   ├── background-remover.js # Core AI engine
-│   │   ├── admin.js              # Admin interface
-│   │   ├── media-modal.js        # Media library modal
-│   │   └── bulk-processor.js     # Bulk processing (Premium)
-│   └── css/                      # Stylesheets
-├── blocks/                       # Gutenberg block
-│   └── background-remover/
-└── build/                        # Compiled assets (gitignored)
+[bg_remover]
 ```
 
-### REST API Endpoints
+### Customize
 
-- `POST /wp-json/bg-remover/v1/save-media` - Save processed image
-- `GET /wp-json/bg-remover/v1/settings` - Get settings
-- `POST /wp-json/bg-remover/v1/settings` - Update settings
-- `GET /wp-json/bg-remover/v1/account-status` - Get account status
-- `GET /wp-json/bg-remover/v1/check-feature/{feature}` - Check feature access
-- `POST /wp-json/bg-remover/v1/verify-account` - Verify premium account
+You can customize the title and image limit:
 
-## Development
-
-### Build Commands
-
-```bash
-# Development mode (watch for changes)
-npm run dev
-
-# Production build
-npm run build
-
-# Preview build
-npm run preview
+```
+[bg_remover title="Remove Backgrounds" max_images="25"]
 ```
 
-### Code Structure
+**Shortcode Attributes:**
+- `title` - Custom heading (default: "AI Background Remover")
+- `max_images` - Maximum images to process (default: 50)
 
-**PHP Classes:**
-- Follow WordPress coding standards
-- Use PHPDoc comments
-- Implement capability checks
+### Example Page
 
-**JavaScript:**
-- ES2020+ features
-- Modular structure
-- Async/await for better readability
+1. Create a new page: **Pages → Add New**
+2. Title it: "Background Remover Tool"
+3. Add the shortcode: `[bg_remover]`
+4. Publish!
 
-**CSS:**
-- BEM-like naming
-- Responsive design
-- WordPress admin styles
+Your visitors can now:
+1. Visit the page
+2. Upload up to 50 images at once
+3. Watch the AI process them in real-time
+4. Download all processed images
+
+## How It Works
+
+1. **Upload**: Visitors drag & drop or select images
+2. **AI Processing**: BRIA-RMBG-1.4 model runs in their browser
+3. **Real-time**: See live progress as images are processed
+4. **Download**: Get all images with backgrounds removed
+
+### Technical Details
+
+- **Model**: BRIA-RMBG-1.4 (background removal)
+- **Library**: Transformers.js
+- **Processing**: WebGPU (GPU accelerated) or WASM (CPU fallback)
+- **Caching**: Model cached in IndexedDB (loads once)
+- **File Size**: ~20MB model (downloaded on first use)
+
+## Performance
+
+**First Load:**
+- Model download: ~20MB
+- Loading time: 10-30 seconds (caches for future use)
+
+**Subsequent Uses:**
+- Model loads from cache: 2-5 seconds
+- Processing: 2-10 seconds per image (depends on size/device)
+
+**WebGPU vs WASM:**
+- WebGPU: 2-3x faster (Chrome/Edge 113+)
+- WASM: Universal compatibility (all browsers)
 
 ## Browser Compatibility
 
@@ -238,29 +120,61 @@ npm run preview
 | Mobile Chrome | ❌ | ✅ | Good |
 | Mobile Safari | ❌ | ✅ | Good |
 
-The plugin automatically detects the best available option (WebGPU → WASM).
+## Styling
 
-## Performance
+The shortcode outputs semantic HTML with BEM-style CSS classes. You can customize the appearance in your theme:
 
-**First Load:**
-- Model download: ~20MB (cached in IndexedDB)
-- Loading time: 10-30 seconds (depends on connection)
+```css
+/* Target the container */
+.wp-bg-remover {
+  max-width: 900px;
+}
 
-**Subsequent Uses:**
-- Model loads from cache: 2-5 seconds
-- Processing time per image: 2-10 seconds (depends on size and device)
+/* Custom button colors */
+.wp-bg-remover-button.primary {
+  background: #your-color;
+}
+```
 
-**WebGPU vs WASM:**
-- WebGPU: 2-3x faster
-- WASM: Universal compatibility
+## Development
 
-## Limitations
+### Build Commands
 
-- **Free users:** One image at a time
-- **Premium users:** Up to 50 images in bulk
-- **Max image size:** 4000x4000px (configurable)
-- **Supported formats:** JPG, PNG, WebP
-- **Model caching:** Requires IndexedDB support
+```bash
+# Development (watch mode)
+npm run dev
+
+# Production build
+npm run build
+
+# Preview build
+npm run preview
+```
+
+### File Structure
+
+```
+wp-background-remover/
+├── wp-background-remover.php    # Main plugin file
+├── includes/
+│   └── class-rest-api.php       # REST API endpoints
+├── assets/
+│   ├── js/
+│   │   ├── background-remover.js  # Core AI engine
+│   │   └── app.js                 # Frontend application
+│   └── css/
+│       └── frontend.css           # Shortcode styles
+├── build/                         # Compiled assets (gitignored)
+├── package.json
+├── vite.config.js
+└── README.md
+```
+
+## REST API Endpoints
+
+The plugin provides these REST endpoints:
+
+- `POST /wp-json/bg-remover/v1/save-media` - Save processed image to media library
 
 ## License
 
@@ -268,63 +182,45 @@ This plugin is released under GPL v2 or later.
 
 ### BRIA-RMBG-1.4 Model License
 
-This plugin uses the **BRIA-RMBG-1.4** model which is:
+This plugin uses the **BRIA-RMBG-1.4** model:
 - ✅ **FREE for non-commercial use**
-- ⚠️ **Requires license for commercial use**
+- ⚠️ **Commercial use requires license from BRIA AI**
 
-Commercial use requires a license from BRIA AI:
+Learn more:
 - Model: https://huggingface.co/briaai/RMBG-1.4
 - License: https://bria.ai/bria-huggingface-model-license-agreement/
 
-## Freemium Model
-
-### Plugin Licensing
-- **FREE tier:** Single image processing (no restrictions, no account needed)
-- **PREMIUM tier:** Bulk processing and advanced features (requires account)
-
-The account system is designed to integrate with your existing backend/payment system. The subscription/payment handling should be implemented on your backend.
-
 ## Troubleshooting
 
-### Model not loading
+### Model Not Loading
 - Check browser console for errors
 - Ensure IndexedDB is enabled
-- Try clearing browser cache
+- Clear browser cache and try again
 - Check network connection
 
-### Processing is slow
-- Use WebGPU-compatible browser (Chrome/Edge 113+)
-- Reduce image size before processing
+### Slow Processing
+- Use WebGPU browser (Chrome/Edge 113+)
+- Reduce image sizes before upload
 - Check device specifications
 
-### Images not saving to library
-- Check user has `upload_files` capability
-- Verify REST API is accessible
+### Images Not Processing
+- Verify file format (JPG, PNG, WebP only)
+- Check file size (max 10MB recommended)
+- Try with fewer images
 - Check browser console for errors
-- Ensure WordPress can write to uploads directory
-
-### Premium features not accessible
-- Verify account is active
-- Check API endpoint configuration
-- Ensure API token is valid
-- Check account verification hasn't expired
 
 ## Support
 
-For issues, questions, or feature requests:
-- **GitHub Issues:** [github.com/yourusername/wp-background-remover/issues](https://github.com/yourusername/wp-background-remover/issues)
-- **Documentation:** [github.com/yourusername/wp-background-remover/wiki](https://github.com/yourusername/wp-background-remover/wiki)
-- **Premium Support:** Available for premium users
+- **Issues**: [GitHub Issues](https://github.com/yourusername/wp-background-remover/issues)
+- **Documentation**: [GitHub Wiki](https://github.com/yourusername/wp-background-remover/wiki)
 
 ## Roadmap
 
-- [ ] ZIP export for bulk processing
-- [ ] WooCommerce integration
-- [ ] API access for developers
-- [ ] Custom watermarks
-- [ ] Batch scheduling
-- [ ] Additional models
-- [ ] Mobile app integration
+- [ ] ZIP export for batch download
+- [ ] Custom background colors
+- [ ] Image quality settings
+- [ ] Progress persistence (resume after refresh)
+- [ ] Additional AI models
 
 ## Credits
 
@@ -336,13 +232,11 @@ For issues, questions, or feature requests:
 
 ### 1.0.0 (2025-01-17)
 - Initial release
-- Single image processing
-- Bulk processing for premium users
-- Media library integration
-- Gutenberg block
-- Account management system
+- Shortcode-based public tool
+- Bulk processing for all visitors
 - WebGPU/WASM support
+- Client-side AI processing
 
 ---
 
-Made with ❤️ for the WordPress community
+Made with ❤️ for WordPress
